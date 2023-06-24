@@ -28,8 +28,10 @@
         default = pkgs.mkShell {
           # The Nix packages provided in the environment
           packages = with pkgs.haskellPackages; [
-            stack
+            cabal-install
             ghc
+            haskell-language-server
+            hlint
           ];
         };
       });
