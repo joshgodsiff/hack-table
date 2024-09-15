@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Kademlia.Types 
   ( NodeID(..)
@@ -6,21 +7,22 @@ module Kademlia.Types
   , KBucket(..)
   , RoutingTable(..)
   , nodeIDFromBS
+  , nodeIDToBS
   , xorDistance
-  , xorDistanceToInt
   , kBucketSize
   , initRoutingTable
   ) where
 
-import Data.Bits
-import Data.Word
-import qualified Data.Text as T
+import Kademlia.Types.Word160 (Word160, fromBS, toBS)
 import qualified Data.ByteString as BS
+import qualified Data.Text as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Data.Bits (xor)
+import Data.Binary
 
-newtype NodeID = NodeID (Vector Word32)
-  deriving (Eq, Ord, Show)
+newtype NodeID = NodeID Word160
+  deriving (Eq, Ord, Show, Enum, Binary)
 
 data Node = Node
   { nodeId :: NodeID
@@ -28,38 +30,35 @@ data Node = Node
   , nodePort :: Word16
   } deriving (Eq, Show)
 
+instance Binary Node where
+  put (Node nid ip port) = put nid >> put (T.unpack ip) >> put port
+  get = Node <$> get <*> (T.pack <$> get) <*> get
+
 newtype KBucket = KBucket (Vector Node)
   deriving (Show)
+
+instance Binary KBucket where
+  put (KBucket nodes) = put (V.toList nodes)
+  get = KBucket . V.fromList <$> get
 
 newtype RoutingTable = RoutingTable (Vector KBucket)
   deriving (Show)
 
+instance Binary RoutingTable where
+  put (RoutingTable buckets) = put (V.toList buckets)
+  get = RoutingTable . V.fromList <$> get
+
 kBucketSize :: Int
 kBucketSize = 20  -- k parameter from the paper
 
--- Helper function to create a NodeID from a ByteString
 nodeIDFromBS :: BS.ByteString -> NodeID
-nodeIDFromBS bs = NodeID $ V.fromList $ map bytesToWord32 $ take 5 $ padAndChunk bs
+nodeIDFromBS = NodeID . fromBS
 
--- Pad the ByteString to 20 bytes and chunk it into 4-byte segments
-padAndChunk :: BS.ByteString -> [BS.ByteString]
-padAndChunk bs = chunksOf 4 $ BS.append bs (BS.replicate (20 - BS.length bs) 0)
+nodeIDToBS :: NodeID -> BS.ByteString
+nodeIDToBS (NodeID w) = toBS w
 
--- Convert a 4-byte ByteString to a Word32
-bytesToWord32 :: BS.ByteString -> Word32
-bytesToWord32 = BS.foldl' (\acc byte -> acc * 256 + fromIntegral byte) 0
-
--- Custom chunksOf function for ByteString
-chunksOf :: Int -> BS.ByteString -> [BS.ByteString]
-chunksOf n bs
-  | BS.null bs = []
-  | otherwise = BS.take n bs : chunksOf n (BS.drop n bs)
-
-xorDistance :: NodeID -> NodeID -> NodeID
-xorDistance (NodeID a) (NodeID b) = NodeID $ V.zipWith xor a b
-
-xorDistanceToInt :: NodeID -> Integer
-xorDistanceToInt (NodeID v) = foldr (\w acc -> acc * (2^(32 :: Int)) + fromIntegral w) 0 $ V.toList v
+xorDistance :: NodeID -> NodeID -> Integer
+xorDistance (NodeID a) (NodeID b) = fromIntegral $ xor a b
 
 initRoutingTable :: RoutingTable
 initRoutingTable = RoutingTable $ V.replicate 160 (KBucket V.empty)

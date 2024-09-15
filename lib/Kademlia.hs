@@ -18,7 +18,7 @@ import qualified Data.ByteString as BS
 findKBucket :: NodeID -> NodeID -> Int
 findKBucket selfId targetId = 159 - (floor (logBase (2 :: Double) (fromIntegral distance)) :: Int)
   where
-    distance = xorDistanceToInt $ xorDistance selfId targetId
+    distance = xorDistance selfId targetId
 
 data LookupState = LookupState
   { lookupTarget :: NodeID

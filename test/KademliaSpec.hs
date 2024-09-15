@@ -9,12 +9,13 @@ import Test.Tasty.Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 import Hedgehog
-import qualified Data.Vector as V
+import qualified Data.Vector.Unboxed as V
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Data.List (sortBy)
 
 import Kademlia
+import Kademlia.Types.Word160 (Word160(..))
 
 -- Generator for NodeID
 genNodeID :: Gen NodeID
@@ -38,7 +39,7 @@ prop_xorDistanceSymmetric = property $ do
 prop_xorDistanceSelfZero :: Property
 prop_xorDistanceSelfZero = property $ do
   a <- forAll genNodeID
-  xorDistance a a === nodeIDFromBS (BS.replicate 20 0)
+  xorDistance a a === 0
 
 -- Property: findKBucket always returns a value between 0 and 159
 prop_findKBucketRange :: Property
@@ -72,7 +73,10 @@ tests :: TestTree
 tests = testGroup "Kademlia"
   [ testGroup "NodeID"
     [ testCase "can be created from ByteString" $
-        nodeIDFromBS (BS.pack [1..20]) @?= NodeID (V.fromList [16909060, 84281096, 151653132, 219025168, 286397204])
+        nodeIDFromBS (BS.pack [1..20]) @?= NodeID (Word160 (V.fromList [1..20]))
+    , testCase "string encoding is the same as ByteString encoding" $
+      NodeID ("0x1234567890abcdef1234567890abcdef12345678" :: Word160)
+        @?= nodeIDFromBS "0x1234567890abcdef1234567890abcdef12345678"
     ]
   , testGroup "XOR Distance"
     [ testProperty "is symmetric" prop_xorDistanceSymmetric
