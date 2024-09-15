@@ -13,6 +13,7 @@ extra-source-files:  CHANGELOG.md
 
 library
   exposed-modules:     Kademlia
+                     , Kademlia.Types  
   build-depends:       base ^>=4.18.2.1
                      , text
                      , bytestring
