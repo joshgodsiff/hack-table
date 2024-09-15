@@ -15,11 +15,12 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import qualified Data.ByteString as BS
 import Kademlia.Metric (Metric (..))
+import Kademlia.SerDe
 
 findKBucket :: Key -> Key -> Int
-findKBucket selfId targetId = 159 - (floor (logBase (2 :: Double) (fromIntegral distance)) :: Int)
+findKBucket selfId targetId = 159 - (floor (logBase (2 :: Double) (fromIntegral d)) :: Int)
   where
-    distance = distance selfId targetId
+    d = distance selfId targetId
 
 data LookupState = LookupState
   { lookupTarget :: Key
@@ -55,9 +56,9 @@ simulateNodeResponses self target queriedNodes =
 
 generateRandomNodes :: Key -> Key -> [Node]
 generateRandomNodes _ _ = 
-  [Node (keyFromBS $ BS.pack [1,2,3,4,5]) "192.168.0.1" 8080
-  ,Node (keyFromBS $ BS.pack [6,7,8,9,10]) "192.168.0.2" 8080
-  ,Node (keyFromBS $ BS.pack [11,12,13,14,15]) "192.168.0.3" 8080]
+  [Node (fromBS $ BS.pack [1,2,3,4,5]) "192.168.0.1" 8080
+  ,Node (fromBS $ BS.pack [6,7,8,9,10]) "192.168.0.2" 8080
+  ,Node (fromBS $ BS.pack [11,12,13,14,15]) "192.168.0.3" 8080]
 
 compareByDistance :: Key -> Node -> Node -> Ordering
 compareByDistance target a b = compare (distance (nodeId a) target) (distance (nodeId b) target)

@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Kademlia.Types.Word160
@@ -53,6 +54,12 @@ instance (a ~ Word8) => ToWord160 [a] where
 instance (a ~ Word8) => FromWord160 [a] where
   fromWord160 (Word160 v) = V.toList v
 
+instance ToWord160 BS.ByteString where
+  toWord160 = fromBS
+
+instance FromWord160 BS.ByteString where
+  fromWord160 = toBS
+
 instance Binary Word160 where
   put (Word160 v) = mapM_ put (V.toList v)
   get = Word160 . V.fromList <$> replicateM 20 get
@@ -81,7 +88,10 @@ instance Num Word160 where
   negate (Word160 a) = Word160 $ V.map (255 -) a
   abs = id
   signum (Word160 a) = if V.all (== 0) a then 0 else 1
-  fromInteger n = toWord160 $ take 20 $ map fromIntegral $ unfoldr (\x -> if x == 0 then Nothing else Just (fromIntegral (x `mod` 256), x `div` 256)) n
+  fromInteger n = toWord160 $ take 20 $ map fromIntegral word8s
+    where
+      word8s :: [Word8]
+      word8s = unfoldr (\x -> if x == 0 then Nothing else Just (fromIntegral (x `mod` 256), x `div` 256)) n
 
 instance Bits Word160 where
   (Word160 a) .&. (Word160 b) = Word160 $ V.zipWith (.&.) a b

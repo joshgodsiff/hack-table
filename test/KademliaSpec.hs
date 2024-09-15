@@ -15,11 +15,13 @@ import qualified Data.Text as T
 import Data.List (sortBy)
 
 import Kademlia
+import Kademlia.Metric
+import Kademlia.SerDe
 import Kademlia.Types.Word160 (Word160(..))
 
 -- Generator for Key
 genKey :: Gen Key
-genKey = keyFromBS <$> Gen.bytes (Range.singleton 20)
+genKey = fromBS <$> Gen.bytes (Range.singleton 20)
 
 -- Generator for Node
 genNode :: Gen Node
@@ -29,17 +31,17 @@ genNode = Node
   <*> Gen.word16 Range.constantBounded
 
 -- Property: XOR distance is symmetric
-prop_xorDistanceSymmetric :: Property
-prop_xorDistanceSymmetric = property $ do
+prop_distanceSymmetric :: Property
+prop_distanceSymmetric = property $ do
   a <- forAll genKey
   b <- forAll genKey
-  xorDistance a b === xorDistance b a
+  distance a b === distance b a
 
 -- Property: XOR distance with self is zero
-prop_xorDistanceSelfZero :: Property
-prop_xorDistanceSelfZero = property $ do
+prop_distanceSelfZero :: Property
+prop_distanceSelfZero = property $ do
   a <- forAll genKey
-  xorDistance a a === 0
+  distance a a === 0
 
 -- Property: findKBucket always returns a value between 0 and 159
 prop_findKBucketRange :: Property
@@ -67,19 +69,19 @@ prop_compareByDistanceOrdering = property $ do
   c <- forAll genNode
   let nodes = [a, b, c]
       sortedNodes = sortBy (compareByDistance target) nodes
-  assert (all (\(x, y) -> xorDistance (nodeId x) target <= xorDistance (nodeId y) target) (zip sortedNodes (tail sortedNodes)))
+  assert (all (\(x, y) -> distance (nodeId x) target <= distance (nodeId y) target) (zip sortedNodes (tail sortedNodes)))
 
 tests :: TestTree
 tests = testGroup "Kademlia"
   [ testGroup "NodeID"
     [ testCase "can be created from ByteString" $
-        nodeIDFromBS (BS.pack [1..20]) @?= Key (Word160 (V.fromList [1..20]))
+        fromBS (BS.pack [1..20]) @?= Key (Word160 (V.fromList [1..20]))
     , testCase "string encoding is the same as ByteString encoding" $
-        Key ("0x1234567890abcdef1234567890abcdef12345678" :: Word160) @?= keyFromBS "0x1234567890abcdef1234567890abcdef12345678"
+        Key ("0x1234567890abcdef1234567890abcdef12345678" :: Word160) @?= fromBS "0x1234567890abcdef1234567890abcdef12345678"
     ]
   , testGroup "XOR Distance"
-    [ testProperty "is symmetric" prop_xorDistanceSymmetric
-    , testProperty "with self is zero" prop_xorDistanceSelfZero
+    [ testProperty "is symmetric" prop_distanceSymmetric
+    , testProperty "with self is zero" prop_distanceSelfZero
     ]
   , testGroup "K-Bucket"
     [ testProperty "findKBucket returns value between 0 and 159" prop_findKBucketRange

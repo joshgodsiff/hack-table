@@ -6,14 +6,11 @@ module Kademlia.Types
   , Node(..)
   , KBucket(..)
   , RoutingTable(..)
-  , 
-  , keyToBS
   , kBucketSize
   , initRoutingTable
   ) where
 
-import Kademlia.Types.Word160 (Word160, fromBS, toBS)
-import qualified Data.ByteString as BS
+import Kademlia.Types.Word160 (Word160 (..))
 import qualified Data.Text as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
@@ -26,7 +23,13 @@ newtype Key = Key Word160
   deriving (Eq, Ord, Show, Enum, Binary)
 
 instance Metric Key where
-  distance = fromIntegral $ xor a b
+  distance (Key a) (Key b) = fromIntegral $ xor a b
+
+instance ToByteString Key where
+  toBS (Key w160) = toBS w160
+
+instance FromByteString Key where
+  fromBS bs = Key $ fromBS bs
 
 data Node = Node
   { nodeId :: Key
@@ -54,12 +57,6 @@ instance Binary RoutingTable where
 
 kBucketSize :: Int
 kBucketSize = 20  -- k parameter from the paper
-
-instance ToByteString Key where
-  toBS (Key w160) = toBS w160
-
-instance FromByteString Key where
-  fromBS bs = Key $ fromBS bs
 
 initRoutingTable :: RoutingTable
 initRoutingTable = RoutingTable $ V.replicate 160 (KBucket V.empty)
