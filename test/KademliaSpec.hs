@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module KademliaSpec (spec) where
+module KademliaSpec (tests) where
 
-import Test.Hspec
-import Test.Hspec.Hedgehog (hedgehog)
-import HaskellWorks.Hspec.Hedgehog (requireProperty)
-import Hedgehog
+import Test.Tasty
+import Test.Tasty.HUnit hiding (assert)
+import Test.Tasty.Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
-import Data.Word
+import Hedgehog
 import qualified Data.Vector as V
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
+import Data.List (sortBy)
 
 import Kademlia
 
@@ -68,27 +68,23 @@ prop_compareByDistanceOrdering = property $ do
       sortedNodes = sortBy (compareByDistance target) nodes
   assert (all (\(x, y) -> xorDistance (nodeId x) target <= xorDistance (nodeId y) target) (zip sortedNodes (tail sortedNodes)))
 
--- Hspec test suite
-spec :: Spec
-spec = do
-  describe "Kademlia" $ do
-    describe "NodeID" $ do
-      it "can be created from ByteString" $ requireProperty $ do
-        let bs = BS.pack [1..20]
-        nodeIDFromBS bs `shouldBe` NodeID (V.fromList [16909060, 84281096, 151653132, 219025168, 286397204])
-
-    describe "XOR Distance" $ do
-      it "Should be symmetric" $ requireProperty $ do
-        prop_xorDistanceSymmetric
-
-      it "To itself should be zero" $ requireProperty $ do
-        prop_xorDistanceSelfZero
-
-    describe "K-Bucket" $ requireProperty $ do
-      prop_findKBucketRange
-
-    describe "Node Lookup" $ requireProperty $ do
-      prop_nodeLookupMaxK
-
-    describe "Node Ordering" $ requireProperty $ do
-      prop_compareByDistanceOrdering
+tests :: TestTree
+tests = testGroup "Kademlia"
+  [ testGroup "NodeID"
+    [ testCase "can be created from ByteString" $
+        nodeIDFromBS (BS.pack [1..20]) @?= NodeID (V.fromList [16909060, 84281096, 151653132, 219025168, 286397204])
+    ]
+  , testGroup "XOR Distance"
+    [ testProperty "is symmetric" prop_xorDistanceSymmetric
+    , testProperty "with self is zero" prop_xorDistanceSelfZero
+    ]
+  , testGroup "K-Bucket"
+    [ testProperty "findKBucket returns value between 0 and 159" prop_findKBucketRange
+    ]
+  , testGroup "Node Lookup"
+    [ testProperty "returns at most k nodes" prop_nodeLookupMaxK
+    ]
+  , testGroup "Node Ordering"
+    [ testProperty "compareByDistance correctly orders nodes" prop_compareByDistanceOrdering
+    ]
+  ]

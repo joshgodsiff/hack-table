@@ -36,13 +36,15 @@ test-suite kademlia-test
   other-modules:       KademliaSpec
   build-depends:       base ^>=4.18.2.1
                      , kademlia
-                     , hspec
+                     , tasty
+                     , tasty-hunit
+                     , tasty-discover
+                     , tasty-hedgehog
                      , hedgehog
-                     , hspec-hedgehog
-                     , hw-hspec-hedgehog
                      , vector
                      , bytestring
                      , text
   hs-source-dirs:      test
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-tool-depends:   tasty-discover:tasty-discover
