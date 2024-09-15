@@ -15,18 +15,18 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import qualified Data.ByteString as BS
 
-findKBucket :: NodeID -> NodeID -> Int
+findKBucket :: Key -> Key -> Int
 findKBucket selfId targetId = 159 - (floor (logBase (2 :: Double) (fromIntegral distance)) :: Int)
   where
     distance = xorDistance selfId targetId
 
 data LookupState = LookupState
-  { lookupTarget :: NodeID
+  { lookupTarget :: Key
   , lookupClosestNodes :: Vector Node
   , lookupQueriedNodes :: Vector Node
   }
 
-nodeLookup :: Node -> NodeID -> RoutingTable -> IO [Node]
+nodeLookup :: Node -> Key -> RoutingTable -> IO [Node]
 nodeLookup self target routingTable = do
   let initialState = LookupState
         { lookupTarget = target
@@ -48,15 +48,15 @@ nodeLookupStep self state = do
                                 V.toList $ lookupClosestNodes state V.++ simulatedResults
       nodeLookupStep self $ newState { lookupClosestNodes = updatedClosestNodes }
 
-simulateNodeResponses :: Node -> NodeID -> Vector Node -> Vector Node
+simulateNodeResponses :: Node -> Key -> Vector Node -> Vector Node
 simulateNodeResponses self target queriedNodes =
   V.concatMap (\n -> V.fromList $ take 3 $ filter (/= self) $ generateRandomNodes (nodeId n) target) queriedNodes
 
-generateRandomNodes :: NodeID -> NodeID -> [Node]
+generateRandomNodes :: Key -> Key -> [Node]
 generateRandomNodes _ _ = 
-  [Node (nodeIDFromBS $ BS.pack [1,2,3,4,5]) "192.168.0.1" 8080
-  ,Node (nodeIDFromBS $ BS.pack [6,7,8,9,10]) "192.168.0.2" 8080
-  ,Node (nodeIDFromBS $ BS.pack [11,12,13,14,15]) "192.168.0.3" 8080]
+  [Node (keyFromBS $ BS.pack [1,2,3,4,5]) "192.168.0.1" 8080
+  ,Node (keyFromBS $ BS.pack [6,7,8,9,10]) "192.168.0.2" 8080
+  ,Node (keyFromBS $ BS.pack [11,12,13,14,15]) "192.168.0.3" 8080]
 
 compareByDistance :: NodeID -> Node -> Node -> Ordering
 compareByDistance target a b = compare (xorDistance (nodeId a) target) (xorDistance (nodeId b) target)

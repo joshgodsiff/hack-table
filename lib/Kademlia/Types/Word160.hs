@@ -20,9 +20,29 @@ import Text.Printf (printf)
 import Data.List (unfoldr)
 import Data.Binary
 import Control.Monad (replicateM)
+import Kademlia.SerDe
 
 newtype Word160 = Word160 (Vector Word8)
   deriving (Eq, Ord)
+
+class ToWord160 a where
+  toWord160 :: a -> Word160
+
+class FromWord160 a where
+  fromWord160 :: Word160 -> a
+
+instance ToWord160 Word160 where
+  toWord160 = id
+
+instance FromWord160 Word160 where
+  fromWord160 = id
+
+instance ToByteString Word160 where
+  toBS (Word160 v) = BS.pack $ V.toList v
+
+instance FromByteString Word160 where
+  fromBS = Word160 . V.fromList . BS.unpack . BS.take 20 $ padded
+    where padded = BS.append bs (BS.replicate (20 - BS.length bs) 0)
 
 instance Show Word160 where
   show (Word160 v) = "0x" ++ concatMap (printf "%02x") (V.toList v)
@@ -33,12 +53,7 @@ toWord160 = Word160 . V.fromList . take 20 . (++ repeat 0)
 fromWord160 :: Word160 -> [Word8]
 fromWord160 (Word160 v) = V.toList v
 
-toBS :: Word160 -> BS.ByteString
-toBS (Word160 v) = BS.pack $ V.toList v
 
-fromBS :: BS.ByteString -> Word160
-fromBS bs = Word160 . V.fromList . BS.unpack . BS.take 20 $ padded
-  where padded = BS.append bs (BS.replicate (20 - BS.length bs) 0)
 
 instance Binary Word160 where
   put (Word160 v) = mapM_ put (V.toList v)

@@ -15,6 +15,7 @@ library
   exposed-modules:     Kademlia
                      , Kademlia.Types
                      , Kademlia.Types.Word160
+                     , Kademlia.SerDe
   build-depends:       base ^>=4.18.2.1
                      , text
                      , bytestring

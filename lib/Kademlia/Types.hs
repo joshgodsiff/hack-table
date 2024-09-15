@@ -21,11 +21,11 @@ import qualified Data.Vector as V
 import Data.Bits (xor)
 import Data.Binary
 
-newtype NodeID = NodeID Word160
+newtype Key = Key Word160
   deriving (Eq, Ord, Show, Enum, Binary)
 
 data Node = Node
-  { nodeId :: NodeID
+  { nodeId :: Key
   , nodeIP :: T.Text
   , nodePort :: Word16
   } deriving (Eq, Show)
@@ -51,14 +51,14 @@ instance Binary RoutingTable where
 kBucketSize :: Int
 kBucketSize = 20  -- k parameter from the paper
 
-nodeIDFromBS :: BS.ByteString -> NodeID
-nodeIDFromBS = NodeID . fromBS
+keyFromBS :: BS.ByteString -> Key
+keyFromBS = Key . fromBS
 
-nodeIDToBS :: NodeID -> BS.ByteString
-nodeIDToBS (NodeID w) = toBS w
+keyToBS :: Key -> BS.ByteString
+keyToBS (Key w) = toBS w
 
-xorDistance :: NodeID -> NodeID -> Integer
-xorDistance (NodeID a) (NodeID b) = fromIntegral $ xor a b
+xorDistance :: Key -> Key -> Integer
+xorDistance (Key a) (Key b) = fromIntegral $ xor a b
 
 initRoutingTable :: RoutingTable
 initRoutingTable = RoutingTable $ V.replicate 160 (KBucket V.empty)
