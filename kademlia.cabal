@@ -39,6 +39,7 @@ test-suite kademlia-test
                      , hspec
                      , hedgehog
                      , hspec-hedgehog
+                     , hw-hspec-hedgehog
                      , vector
                      , bytestring
                      , text

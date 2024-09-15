@@ -4,7 +4,8 @@
 module KademliaSpec (spec) where
 
 import Test.Hspec
-import Test.Hspec.Hedgehog
+import Test.Hspec.Hedgehog (hedgehog)
+import HaskellWorks.Hspec.Hedgehog (requireProperty)
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
@@ -72,20 +73,22 @@ spec :: Spec
 spec = do
   describe "Kademlia" $ do
     describe "NodeID" $ do
-      it "can be created from ByteString" $ do
+      it "can be created from ByteString" $ requireProperty $ do
         let bs = BS.pack [1..20]
         nodeIDFromBS bs `shouldBe` NodeID (V.fromList [16909060, 84281096, 151653132, 219025168, 286397204])
 
     describe "XOR Distance" $ do
-      hedgehog $ do
+      it "Should be symmetric" $ requireProperty $ do
         prop_xorDistanceSymmetric
+
+      it "To itself should be zero" $ requireProperty $ do
         prop_xorDistanceSelfZero
 
-    describe "K-Bucket" $ do
-      hedgehog prop_findKBucketRange
+    describe "K-Bucket" $ requireProperty $ do
+      prop_findKBucketRange
 
-    describe "Node Lookup" $ do
-      hedgehog prop_nodeLookupMaxK
+    describe "Node Lookup" $ requireProperty $ do
+      prop_nodeLookupMaxK
 
-    describe "Node Ordering" $ do
-      hedgehog prop_compareByDistanceOrdering
+    describe "Node Ordering" $ requireProperty $ do
+      prop_compareByDistanceOrdering
