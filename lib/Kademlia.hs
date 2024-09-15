@@ -53,10 +53,13 @@ initRoutingTable :: RoutingTable
 initRoutingTable = RoutingTable $ V.replicate 160 (KBucket V.empty)
 
 findKBucket :: NodeID -> NodeID -> Int
-findKBucket selfId targetId = 159 - (floor $ logBase 2 $ fromIntegral $ xorDistanceToInt $ xorDistance selfId targetId)
+findKBucket selfId targetId = 159 - (floor (logBase (2 :: Double) (fromIntegral distance)) :: Int)
+  where
+    distance = xorDistanceToInt $ xorDistance selfId targetId
 
 xorDistanceToInt :: NodeID -> Integer
-xorDistanceToInt (NodeID v) = foldr (\w acc -> acc * 2^32 + fromIntegral w) 0 $ V.toList v
+xorDistanceToInt (NodeID v) = foldr (\w acc -> acc * (2^(32 :: Int)) + fromIntegral w) 0 $ V.toList v
+
 
 data LookupState = LookupState
   { lookupTarget :: NodeID
@@ -95,7 +98,7 @@ simulateNodeResponses self target queriedNodes =
   V.concatMap (\n -> V.fromList $ take 3 $ filter (/= self) $ generateRandomNodes (nodeId n) target) queriedNodes
 
 generateRandomNodes :: NodeID -> NodeID -> [Node]
-generateRandomNodes baseId target = 
+generateRandomNodes _ _ = 
   -- In a real implementation, this would generate nodes based on the network state
   -- For now, we'll just create some dummy nodes
   [Node (nodeIDFromBS $ BS.pack [1,2,3,4,5]) "192.168.0.1" 8080
