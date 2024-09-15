@@ -8,16 +8,28 @@ import qualified Data.Text as T
 import qualified Data.ByteString as BS
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Data.List (sortBy)
 
 newtype NodeID = NodeID (Vector Word32)
   deriving (Eq, Ord, Show)
 
 -- Helper function to create a NodeID from a ByteString
 nodeIDFromBS :: BS.ByteString -> NodeID
-nodeIDFromBS bs = NodeID $ V.fromList [w1, w2, w3, w4, w5]
-  where
-    [w1, w2, w3, w4, w5] = map (foldr (\b a -> a * 256 + fromIntegral b) 0) $
-                           take 5 $ BS.chunksOf 4 $ BS.append bs (BS.replicate (20 - BS.length bs) 0)
+nodeIDFromBS bs = NodeID $ V.fromList $ map bytesToWord32 $ take 5 $ padAndChunk bs
+
+-- Pad the ByteString to 20 bytes and chunk it into 4-byte segments
+padAndChunk :: BS.ByteString -> [BS.ByteString]
+padAndChunk bs = chunksOf 4 $ BS.append bs (BS.replicate (20 - BS.length bs) 0)
+
+-- Convert a 4-byte ByteString to a Word32
+bytesToWord32 :: BS.ByteString -> Word32
+bytesToWord32 = BS.foldl' (\acc byte -> acc * 256 + fromIntegral byte) 0
+
+-- Custom chunksOf function for ByteString
+chunksOf :: Int -> BS.ByteString -> [BS.ByteString]
+chunksOf n bs
+  | BS.null bs = []
+  | otherwise = BS.take n bs : chunksOf n (BS.drop n bs)
 
 data Node = Node
   { nodeId :: NodeID
@@ -73,9 +85,10 @@ nodeLookupStep self state = do
     else do
       -- Simulate querying nodes and getting results
       let simulatedResults = simulateNodeResponses self (lookupTarget state) newQueriedNodes
-          updatedClosestNodes = V.take kBucketSize $ V.sortBy (compareByDistance (lookupTarget state)) $
-                                lookupClosestNodes state V.++ simulatedResults
+          updatedClosestNodes = V.take kBucketSize $ V.fromList $ sortBy (compareByDistance (lookupTarget state)) $
+                                V.toList $ lookupClosestNodes state V.++ simulatedResults
       nodeLookupStep self $ newState { lookupClosestNodes = updatedClosestNodes }
+
 
 simulateNodeResponses :: Node -> NodeID -> Vector Node -> Vector Node
 simulateNodeResponses self target queriedNodes =
