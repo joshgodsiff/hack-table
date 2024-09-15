@@ -17,35 +17,35 @@ import Data.List (sortBy)
 import Kademlia
 import Kademlia.Types.Word160 (Word160(..))
 
--- Generator for NodeID
-genNodeID :: Gen NodeID
-genNodeID = nodeIDFromBS <$> Gen.bytes (Range.singleton 20)
+-- Generator for Key
+genKey :: Gen Key
+genKey = keyFromBS <$> Gen.bytes (Range.singleton 20)
 
 -- Generator for Node
 genNode :: Gen Node
 genNode = Node
-  <$> genNodeID
+  <$> genKey
   <*> (T.pack <$> Gen.string (Range.linear 7 15) Gen.alphaNum)
   <*> Gen.word16 Range.constantBounded
 
 -- Property: XOR distance is symmetric
 prop_xorDistanceSymmetric :: Property
 prop_xorDistanceSymmetric = property $ do
-  a <- forAll genNodeID
-  b <- forAll genNodeID
+  a <- forAll genKey
+  b <- forAll genKey
   xorDistance a b === xorDistance b a
 
 -- Property: XOR distance with self is zero
 prop_xorDistanceSelfZero :: Property
 prop_xorDistanceSelfZero = property $ do
-  a <- forAll genNodeID
+  a <- forAll genKey
   xorDistance a a === 0
 
 -- Property: findKBucket always returns a value between 0 and 159
 prop_findKBucketRange :: Property
 prop_findKBucketRange = property $ do
-  selfId <- forAll genNodeID
-  targetId <- forAll genNodeID
+  selfId <- forAll genKey
+  targetId <- forAll genKey
   let bucketIndex = findKBucket selfId targetId
   assert (bucketIndex >= 0 && bucketIndex <= 159)
 
@@ -53,7 +53,7 @@ prop_findKBucketRange = property $ do
 prop_nodeLookupMaxK :: Property
 prop_nodeLookupMaxK = property $ do
   self <- forAll genNode
-  target <- forAll genNodeID
+  target <- forAll genKey
   let routingTable = initRoutingTable
   result <- evalIO $ nodeLookup self target routingTable
   assert (length result <= kBucketSize)
@@ -61,7 +61,7 @@ prop_nodeLookupMaxK = property $ do
 -- Test that compareByDistance correctly orders nodes
 prop_compareByDistanceOrdering :: Property
 prop_compareByDistanceOrdering = property $ do
-  target <- forAll genNodeID
+  target <- forAll genKey
   a <- forAll genNode
   b <- forAll genNode
   c <- forAll genNode
@@ -73,10 +73,9 @@ tests :: TestTree
 tests = testGroup "Kademlia"
   [ testGroup "NodeID"
     [ testCase "can be created from ByteString" $
-        nodeIDFromBS (BS.pack [1..20]) @?= NodeID (Word160 (V.fromList [1..20]))
+        nodeIDFromBS (BS.pack [1..20]) @?= Key (Word160 (V.fromList [1..20]))
     , testCase "string encoding is the same as ByteString encoding" $
-      NodeID ("0x1234567890abcdef1234567890abcdef12345678" :: Word160)
-        @?= nodeIDFromBS "0x1234567890abcdef1234567890abcdef12345678"
+        Key ("0x1234567890abcdef1234567890abcdef12345678" :: Word160) @?= keyFromBS "0x1234567890abcdef1234567890abcdef12345678"
     ]
   , testGroup "XOR Distance"
     [ testProperty "is symmetric" prop_xorDistanceSymmetric

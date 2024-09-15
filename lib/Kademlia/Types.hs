@@ -2,13 +2,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Kademlia.Types 
-  ( NodeID(..)
+  ( Key(..)
   , Node(..)
   , KBucket(..)
   , RoutingTable(..)
-  , nodeIDFromBS
-  , nodeIDToBS
-  , xorDistance
+  , 
+  , keyToBS
   , kBucketSize
   , initRoutingTable
   ) where
@@ -20,9 +19,14 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Data.Bits (xor)
 import Data.Binary
+import Kademlia.Metric (Metric (..))
+import Kademlia.SerDe
 
 newtype Key = Key Word160
   deriving (Eq, Ord, Show, Enum, Binary)
+
+instance Metric Key where
+  distance = fromIntegral $ xor a b
 
 data Node = Node
   { nodeId :: Key
@@ -51,14 +55,11 @@ instance Binary RoutingTable where
 kBucketSize :: Int
 kBucketSize = 20  -- k parameter from the paper
 
-keyFromBS :: BS.ByteString -> Key
-keyFromBS = Key . fromBS
+instance ToByteString Key where
+  toBS (Key w160) = toBS w160
 
-keyToBS :: Key -> BS.ByteString
-keyToBS (Key w) = toBS w
-
-xorDistance :: Key -> Key -> Integer
-xorDistance (Key a) (Key b) = fromIntegral $ xor a b
+instance FromByteString Key where
+  fromBS bs = Key $ fromBS bs
 
 initRoutingTable :: RoutingTable
 initRoutingTable = RoutingTable $ V.replicate 160 (KBucket V.empty)

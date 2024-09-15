@@ -1,8 +1,6 @@
 module Kademlia.SerDe where
 
-import Kademlia.Types.Word160 (Word160 (..))
 import qualified Data.ByteString as BS
-
 
 class ToByteString a where
   toBS :: a -> BS.ByteString

@@ -14,11 +14,12 @@ import Data.List (sortBy)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 import qualified Data.ByteString as BS
+import Kademlia.Metric (Metric (..))
 
 findKBucket :: Key -> Key -> Int
 findKBucket selfId targetId = 159 - (floor (logBase (2 :: Double) (fromIntegral distance)) :: Int)
   where
-    distance = xorDistance selfId targetId
+    distance = distance selfId targetId
 
 data LookupState = LookupState
   { lookupTarget :: Key
@@ -58,9 +59,9 @@ generateRandomNodes _ _ =
   ,Node (keyFromBS $ BS.pack [6,7,8,9,10]) "192.168.0.2" 8080
   ,Node (keyFromBS $ BS.pack [11,12,13,14,15]) "192.168.0.3" 8080]
 
-compareByDistance :: NodeID -> Node -> Node -> Ordering
-compareByDistance target a b = compare (xorDistance (nodeId a) target) (xorDistance (nodeId b) target)
+compareByDistance :: Key -> Node -> Node -> Ordering
+compareByDistance target a b = compare (distance (nodeId a) target) (distance (nodeId b) target)
 
-findClosestNodes :: RoutingTable -> NodeID -> Int -> [Node]
+findClosestNodes :: RoutingTable -> Key -> Int -> [Node]
 findClosestNodes (RoutingTable buckets) target count =
   take count $ sortBy (compareByDistance target) $ concatMap (\(KBucket nodes) -> V.toList nodes) $ V.toList buckets

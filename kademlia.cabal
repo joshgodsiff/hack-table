@@ -16,6 +16,7 @@ library
                      , Kademlia.Types
                      , Kademlia.Types.Word160
                      , Kademlia.SerDe
+                     , Kademlia.Metric
   build-depends:       base ^>=4.18.2.1
                      , text
                      , bytestring

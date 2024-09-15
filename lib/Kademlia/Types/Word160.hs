@@ -41,19 +41,17 @@ instance ToByteString Word160 where
   toBS (Word160 v) = BS.pack $ V.toList v
 
 instance FromByteString Word160 where
-  fromBS = Word160 . V.fromList . BS.unpack . BS.take 20 $ padded
+  fromBS bs = Word160 . V.fromList . BS.unpack . BS.take 20 $ padded
     where padded = BS.append bs (BS.replicate (20 - BS.length bs) 0)
 
 instance Show Word160 where
   show (Word160 v) = "0x" ++ concatMap (printf "%02x") (V.toList v)
 
-toWord160 :: [Word8] -> Word160
-toWord160 = Word160 . V.fromList . take 20 . (++ repeat 0)
+instance (a ~ Word8) => ToWord160 [a] where
+  toWord160 = Word160 . V.fromList . take 20 . (++ repeat 0)
 
-fromWord160 :: Word160 -> [Word8]
-fromWord160 (Word160 v) = V.toList v
-
-
+instance (a ~ Word8) => FromWord160 [a] where
+  fromWord160 (Word160 v) = V.toList v
 
 instance Binary Word160 where
   put (Word160 v) = mapM_ put (V.toList v)
