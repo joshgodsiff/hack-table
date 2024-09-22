@@ -15,7 +15,6 @@ library
   exposed-modules:     Kademlia
                      , Kademlia.Metric
                      , Kademlia.SerDe
-                     , Kademlia.Types
                      , Kademlia.Types.KBucket
                      , Kademlia.Types.Key
                      , Kademlia.Types.Node

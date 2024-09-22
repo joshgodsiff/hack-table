@@ -6,6 +6,7 @@ import qualified Data.Vector as V
 import Kademlia.Types.Key
 import Kademlia.Types.KBucket as KB
 import Kademlia.Types.Node
+import Kademlia.Metric
 
 newtype RoutingTable = RoutingTable (Vector (KB.KBucket Int Key Node))
 

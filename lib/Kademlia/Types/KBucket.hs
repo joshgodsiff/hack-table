@@ -1,6 +1,15 @@
-module Kademlia.Types.KBucket where
+module Kademlia.Types.KBucket
+  ( KBucket (..)
+  , kBucketSize
+  , empty
+  , singleton
+  , insert
+  , pop
+  , member
+  , size
+  )
+where
 
-import qualified Data.PriorityQueue.FingerTree as PQ
 import qualified Data.Map.Strict as M
 import Data.Map.Strict ((!))
 
@@ -41,6 +50,20 @@ pop (KBucket m ps)
 member :: Ord k => k -> KBucket p k v -> Bool
 member k = M.member k . prio
 
+size :: KBucket p k v -> Int
+size = M.size . prio
+
+----------------------------------------------------------------
+-- Private functions --
+----------------------------------------------------------------
+
+unsafeInsert :: (Ord p, Ord k) => p -> k -> v -> KBucket p k v -> KBucket p k v
+unsafeInsert p k v (KBucket m ps)
+  = KBucket
+  { mems = M.insert (p, k) v m
+  , prio = M.insert k p ps
+  }
+
 adjustP :: (Ord p, Ord k) => p -> k -> KBucket p k v -> KBucket p k v
 adjustP p k kb@(KBucket m ps)
   | member k kb && (ps ! k == p) = kb
@@ -50,15 +73,3 @@ adjustP p k kb@(KBucket m ps)
       deleted = M.delete (currentP, k) m
     in unsafeInsert p k v (KBucket { mems = deleted, prio = ps })
   | otherwise = kb -- No-op. Caller is a dumb-dumb.
-
-size :: KBucket p k v -> Int
-size = M.size . prio
-
-----------------------------------------------------------------
-
-unsafeInsert :: (Ord p, Ord k) => p -> k -> v -> KBucket p k v -> KBucket p k v
-unsafeInsert p k v kb@(KBucket m ps)
-  = KBucket
-  { mems = M.insert (p, k) v m
-  , prio = M.insert k p ps
-  }
