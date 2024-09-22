@@ -4,14 +4,22 @@ module Kademlia.Types.KBucket
   , empty
   , singleton
   , insert
-  , pop
+  , minView
+  , minViewWithKey
+  , maxView
+  , maxViewWithKey
   , member
   , size
+  , fromList
+  , toAscList
+  , toAscListValues
   )
 where
 
 import qualified Data.Map.Strict as M
 import Data.Map.Strict ((!))
+import qualified Data.Foldable as F
+import Data.List (unfoldr)
 
 kBucketSize :: Int
 kBucketSize = 20  -- k parameter from the paper
@@ -19,7 +27,7 @@ kBucketSize = 20  -- k parameter from the paper
 data KBucket p k v = KBucket
   { mems :: M.Map (p, k) v
   , prio :: M.Map k p
-  }
+  } deriving (Show)
 
 empty :: KBucket p k v
 empty = KBucket
@@ -39,19 +47,44 @@ insert p k v kb
   | not (member k kb) && size kb < kBucketSize = unsafeInsert p k v kb
   | otherwise = kb -- Bucket full, intentionally ignore input
 
-pop :: (Ord p, Ord k) => KBucket p k v -> Maybe (v, KBucket p k v)
-pop (KBucket m ps)
+minView :: (Ord p, Ord k) => KBucket p k v -> Maybe (v, KBucket p k v)
+minView kb = case minViewWithKey kb of
+  Just ((_, _, v), rest) -> Just (v, rest)
+  Nothing -> Nothing
+
+minViewWithKey :: (Ord p, Ord k) => KBucket p k v -> Maybe ((p, k, v), KBucket p k v)
+minViewWithKey (KBucket m ps)
   | M.null m = Nothing
-  | otherwise = Just (v, KBucket { mems = m', prio = ps'})
-    where
-      (((_, k), v), m') = M.deleteFindMin m
-      ps' = M.delete k ps
+  | otherwise = Just ((p, k, v), KBucket { mems = m', prio = M.delete k ps})
+    where (((p, k), v), m') = M.deleteFindMin m
+
+maxView :: (Ord p, Ord k) => KBucket p k v -> Maybe (v, KBucket p k v)
+maxView kb = case maxViewWithKey kb of
+  Just ((_, _, v), rest) -> Just (v, rest)
+  Nothing -> Nothing
+
+maxViewWithKey :: (Ord p, Ord k) => KBucket p k v -> Maybe ((p, k, v), KBucket p k v)
+maxViewWithKey (KBucket m ps)
+  | M.null m = Nothing
+  | otherwise = Just ((p, k, v), KBucket { mems = m', prio = M.delete k ps})
+    where (((p, k), v), m') = M.deleteFindMax m
+
 
 member :: Ord k => k -> KBucket p k v -> Bool
 member k = M.member k . prio
 
 size :: KBucket p k v -> Int
 size = M.size . prio
+
+fromList :: (Ord p, Ord k) =>  [(p, k, v)] -> KBucket p k v
+fromList xs = F.foldl' ins empty xs
+  where ins kb (p, k, v) = insert p k v kb
+
+toAscListValues :: (Ord p, Ord k) => KBucket p k v -> [v]
+toAscListValues = unfoldr minView
+
+toAscList :: (Ord p, Ord k) => KBucket p k v -> [(p, k, v)]
+toAscList = unfoldr minViewWithKey
 
 ----------------------------------------------------------------
 -- Private functions --
