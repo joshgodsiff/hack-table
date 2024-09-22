@@ -1,5 +1,13 @@
 {
   "cSpell.words": [
-    "Kademlia"
+    "assocs",
+    "Kademlia",
+    "mappend",
+    "mempty",
+    "Monoid",
+    "Prio",
+    "Semigroup",
+    "unfoldr",
+    "viewl"
   ]
 }

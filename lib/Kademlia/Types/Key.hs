@@ -1,0 +1,10 @@
+module Kademlia.Types.Key where
+
+import Kademlia.Types.Word160
+import Kademlia.Metric
+
+newtype Key = Key Word160
+  deriving (Eq, Ord, Show, Enum, Binary, ToByteString, FromByteString)
+
+instance Metric Key where
+  distance (Key a) (Key b) = fromIntegral $ xor a b
