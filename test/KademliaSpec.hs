@@ -15,6 +15,7 @@ import qualified Data.Text as T
 import Data.List (sortBy)
 
 import Kademlia.Types.Key
+import Kademlia.Types.Node
 import Kademlia.Metric
 import Kademlia.SerDe
 import Kademlia.Types.Word160 (Word160(..))

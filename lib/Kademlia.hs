@@ -1,1 +1,5 @@
-module Kademlia where
+module Kademlia
+  ( kBucketSize )
+where
+
+import Kademlia.Types.KBucket
