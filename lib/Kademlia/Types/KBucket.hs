@@ -1,86 +1,64 @@
 module Kademlia.Types.KBucket where
 
-import qualified Data.FingerTree as FT
-import Data.FingerTree (FingerTree, (<|), (|>), (><))
-
-import Data.Vector (Vector)
-import qualified Data.Vector as V
-import Data.List (unfoldr)
-import Data.Arrow ((***))
+import qualified Data.PriorityQueue.FingerTree as PQ
+import qualified Data.Map.Strict as M
+import Data.Map.Strict ((!))
 
 kBucketSize :: Int
 kBucketSize = 20  -- k parameter from the paper
 
-data Entry p k v = Entry p k v
+data KBucket p k v = KBucket
+  { mems :: M.Map (p, k) v
+  , prio :: M.Map k p
+  }
 
-instance Functor (Entry p k) where
-    fmap f (Entry p k v) = Entry p k (f v)
+empty :: KBucket p k v
+empty = KBucket
+  { mems = M.empty
+  , prio = M.empty
+  }
 
-instance Foldable (Entry p k) where
-  foldMap f (Entry _ _ v) = f v
+singleton :: p -> k -> v -> KBucket p k v
+singleton p k v = KBucket
+  { mems = M.singleton (p, k) v
+  , prio = M.singleton k p
+  }
 
----------------------------------------------------------------
+insert :: (Ord p, Ord k) => p -> k -> v -> KBucket p k v -> KBucket p k v
+insert p k v kb
+  | member k kb                                = adjustP p k kb
+  | not (member k kb) && size kb < kBucketSize = unsafeInsert p k v kb
+  | otherwise = kb -- Bucket full, intentionally ignore input
 
-data Prio p k v = NoPrio | Prio p k v
+pop :: (Ord p, Ord k) => KBucket p k v -> Maybe (v, KBucket p k v)
+pop (KBucket m ps)
+  | M.null m = Nothing
+  | otherwise = Just (v, KBucket { mems = m', prio = ps'})
+    where
+      (((_, k), v), m') = M.deleteFindMin m
+      ps' = M.delete k ps
 
-instance Ord p => Semigroup (Prio p k v) where
-  (<>) = unionPrio
+member :: Ord k => k -> KBucket p k v -> Bool
+member k = M.member k . prio
 
-instance Ord k => Monoid (Prio k v) where
-  mempty  = NoPrio
-  mappend = unionPrio
+adjustP :: (Ord p, Ord k) => p -> k -> KBucket p k v -> KBucket p k v
+adjustP p k kb@(KBucket m ps)
+  | member k kb && (ps ! k == p) = kb
+  | member k kb = let
+      currentP = ps ! k
+      v = m ! (currentP, k)
+      deleted = M.delete (currentP, k) m
+    in unsafeInsert p k v (KBucket { mems = deleted, prio = ps })
+  | otherwise = kb -- No-op. Caller is a dumb-dumb.
 
-unionPrio :: Ord p => Prio p k v -> Prio p k v -> Prio p k v
-x `unionPrio` NoPrio      = x
-NoPrio `unionPrio` y      = y
-x@(Prio px _ _) `unionPrio` y@(Prio py _ _)
-  | px <= py            = x
-  | otherwise           = y
+size :: KBucket p k v -> Int
+size = M.size . prio
 
-instance Measured (Prio p k v) (Entry p k v) where
-  measure (Entry p k v) = Prio p k v
+----------------------------------------------------------------
 
----------------------------------------------------------------
-
-newtype KBucket p k v = KBucket (FT.FingerTree (Prio p k v) (Entry p k v))
-  deriving (Show)
-
-instance Ord p => Functor (KBucket p k) where
-    fmap f (KBucket xs) = KBucket (FT.fmap' (fmap f) xs)
-
--- | In ascending order of keys.
-instance Ord p => Foldable (KBucket p k) where
-    foldMap f q = case minView q of
-        Nothing -> mempty
-        Just (v, q') -> f v `mappend` foldMap f q'
-    null (PQueue q) = FT.null q
-
-instance Ord p => Semigroup (KBucket p k v) where
-    (<>) = union
-
--- | 'empty' and 'union'
-instance Ord p => Monoid (KBucket p k v) where
-    mempty = empty
-    mappend = union
-
-instance (Ord p, Eq k, Eq v) => Eq (KBucket p k v) where
-    xs == ys = assocs xs == assocs ys
-
-minView :: Ord p => KBucket p k v -> Maybe (v, KBucket p k v)
-minView q = fmap (snd *** id) (minViewWithKey q)
-
-minViewWithKey :: Ord p => KBucket p k v -> Maybe ((p, k, v), KBucket p k v)
-minViewWithKey (KBucket q)
-  | FT.null q = Nothing
-  | otherwise = Just ((p, k, v), case FT.viewl r of
-    _ :< r' -> KBucket (l >< r')
-    _ -> error "can't happen")
-  where
-    Prio p k v = measure q
-    (l, r) = FT.split (below p) q
-
-union :: Ord p => KBucket p k v -> KBucket p k v -> KBucket p k v
-union (KBucket xs) (KBucket ys) = KBucket (xs >< ys)
-
-assocs :: Ord p => KBucket p k v -> [(p, k, v)]
-assocs = unfoldr minViewWithKey
+unsafeInsert :: (Ord p, Ord k) => p -> k -> v -> KBucket p k v -> KBucket p k v
+unsafeInsert p k v kb@(KBucket m ps)
+  = KBucket
+  { mems = M.insert (p, k) v m
+  , prio = M.insert k p ps
+  }

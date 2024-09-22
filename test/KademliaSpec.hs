@@ -18,6 +18,7 @@ import Kademlia
 import Kademlia.Metric
 import Kademlia.SerDe
 import Kademlia.Types.Word160 (Word160(..))
+import qualified Kademlia.Types.RoutingTable as RT
 
 -- Generator for Key
 genKey :: Gen Key
@@ -56,7 +57,7 @@ prop_nodeLookupMaxK :: Property
 prop_nodeLookupMaxK = property $ do
   self <- forAll genNode
   target <- forAll genKey
-  let routingTable = initRoutingTable
+  let routingTable = RT.empty
   result <- evalIO $ nodeLookup self target routingTable
   assert (length result <= kBucketSize)
 

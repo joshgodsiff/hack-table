@@ -17,10 +17,7 @@ import qualified Data.ByteString as BS
 import Kademlia.Metric (Metric (..))
 import Kademlia.SerDe
 
-findKBucket :: Key -> Key -> Int
-findKBucket selfId targetId = 159 - (floor (logBase (2 :: Double) (fromIntegral d)) :: Int)
-  where
-    d = distance selfId targetId
+
 
 data LookupState = LookupState
   { lookupTarget :: Key
