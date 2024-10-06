@@ -48,9 +48,7 @@ insert p k v kb
   | otherwise = kb -- Bucket full, intentionally ignore input
 
 minView :: (Ord p, Ord k) => KBucket p k v -> Maybe (v, KBucket p k v)
-minView kb = case minViewWithKey kb of
-  Just ((_, _, v), rest) -> Just (v, rest)
-  Nothing -> Nothing
+minView = fmap justValue . minViewWithKey
 
 minViewWithKey :: (Ord p, Ord k) => KBucket p k v -> Maybe ((p, k, v), KBucket p k v)
 minViewWithKey (KBucket m ps)
@@ -59,9 +57,7 @@ minViewWithKey (KBucket m ps)
     where (((p, k), v), m') = M.deleteFindMin m
 
 maxView :: (Ord p, Ord k) => KBucket p k v -> Maybe (v, KBucket p k v)
-maxView kb = case maxViewWithKey kb of
-  Just ((_, _, v), rest) -> Just (v, rest)
-  Nothing -> Nothing
+maxView = fmap justValue . maxViewWithKey
 
 maxViewWithKey :: (Ord p, Ord k) => KBucket p k v -> Maybe ((p, k, v), KBucket p k v)
 maxViewWithKey (KBucket m ps)
@@ -106,3 +102,6 @@ adjustP p k kb@(KBucket m ps)
       deleted = M.delete (currentP, k) m
     in unsafeInsert p k v (KBucket { mems = deleted, prio = ps })
   | otherwise = kb -- No-op. Caller is a dumb-dumb.
+
+justValue :: ((a,b,c), x) -> (c, x)
+justValue ((_,_,c), x) = (c, x)

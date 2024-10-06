@@ -85,7 +85,7 @@ instance Num Word160 where
   (Word160 a) * (Word160 b) = toWord160 $ take 20 $ multiply (V.toList a) (V.toList b)
     where
       multiply xs ys = [sum [fromIntegral (xs !! i) * fromIntegral (ys !! j) | (i, j) <- zip [0..k] [k,k-1..0]] | k <- [0..38]]
-  negate (Word160 a) = Word160 $ V.map (255 -) a
+  negate (Word160 a) = Word160 $ V.map negate a
   abs = id
   signum (Word160 a) = if V.all (== 0) a then 0 else 1
   fromInteger n = toWord160 $ take 20 $ map fromIntegral word8s
