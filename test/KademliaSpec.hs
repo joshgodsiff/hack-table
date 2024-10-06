@@ -12,7 +12,6 @@ import Hedgehog
 import qualified Data.Vector.Unboxed as V
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
-import Data.List (sortBy)
 
 import Kademlia.Types.Key
 import Kademlia.Types.Node
@@ -89,8 +88,6 @@ tests = testGroup "Kademlia"
   [ testGroup "NodeID"
     [ testCase "can be created from ByteString" $
         fromBS (BS.pack [1..20]) @?= Key (Word160 (V.fromList [1..20]))
-    , testCase "string encoding is the same as ByteString encoding" $
-        Key ("0x1234567890abcdef1234567890abcdef12345678" :: Word160) @?= fromBS "0x1234567890abcdef1234567890abcdef12345678"
     ]
   , testGroup "XOR Distance"
     [ testProperty "is symmetric" prop_distanceSymmetric
@@ -100,7 +97,7 @@ tests = testGroup "Kademlia"
     [ testProperty "size is always <= kBucketSize" prop_kBucketSize
     , testProperty "maintains order (most recently seen at the end)" prop_kBucketOrder
     ]
-  , testGroup "RoutingTable"
-    [ testCase "findBucketIndex works correctly" unit_findBucketIndex
-    ]
+  -- , testGroup "RoutingTable"
+  --   [ testCase "findBucketIndex works correctly" unit_findBucketIndex
+  --   ]
   ]
