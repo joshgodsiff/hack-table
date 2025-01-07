@@ -42,13 +42,15 @@ executable kademlia-exe
 
 test-suite kademlia-test
   type:                exitcode-stdio-1.0
-  main-is:             Spec.hs
-  other-modules:       KademliaSpec
-                     , Word160Spec
+  main-is:             Main.hs
+  other-modules:       Spec.Kademlia
+                     , Spec.Word160
+                     , Spec.KBucket
   build-depends:       base ^>=4.19.2
                      , kademlia
                      , binary
                      , bytestring
+                     , containers
                      , hedgehog
                      , tasty
                      , tasty-discover
