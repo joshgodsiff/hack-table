@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Word160Spec (tests) where
+module Spec.Word160 (tests) where
 
 import Test.Tasty
 import Test.Tasty.HUnit

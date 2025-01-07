@@ -1,4 +1,4 @@
-module KBucketSpec where
+module Spec.KBucket where
 
 import Test.Tasty
 import Test.Tasty.HUnit

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module KademliaSpec (tests) where
+module Spec.Kademlia (tests) where
 
 import Test.Tasty
 import Test.Tasty.HUnit hiding (assert)
