@@ -46,6 +46,8 @@ test-suite kademlia-test
   other-modules:       Spec.Kademlia
                      , Spec.Word160
                      , Spec.KBucket
+                     , Spec.RoutingTable
+                     , Gen.Kademlia
   build-depends:       base ^>=4.19.2
                      , kademlia
                      , binary

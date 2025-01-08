@@ -7,7 +7,7 @@ import Kademlia.Types.Key
 
 data Node = Node
   { nodeId :: Key
-  , nodeIP :: T.Text
+  , nodeIP :: T.Text -- Todo: Make this a proper IP address type
   , nodePort :: Word16
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Ord)
 

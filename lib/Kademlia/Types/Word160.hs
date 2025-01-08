@@ -12,6 +12,7 @@ module Kademlia.Types.Word160
   , toBS
   , fromBS
   , zero
+  , showBinary
   )
 where
 
@@ -60,7 +61,7 @@ instance FromWord160 DW.Word160 where
       w128 = foldl (\acc (i, b) -> acc + (fromIntegral b `shiftL` (8 * i))) 0 (zip [0..15] (V.toList $ V.slice 4 16 v))
 
 instance ToWord160 DW.Word160 where
-  toWord160 (DW.Word160 w32 w128) = Word160 $ V.fromList $ concat [w32Bytes, w128Bytes]
+  toWord160 (DW.Word160 w32 w128) = Word160 $ V.fromList (w32Bytes ++ w128Bytes)
     where
       w32Bytes = map (fromIntegral . (.&. 0xFF)) [w32, w32 `shiftR` 8, w32 `shiftR` 16, w32 `shiftR` 24]
       w128Bytes = map (fromIntegral . (.&. 0xFF)) [w128, w128 `shiftR` 8, w128 `shiftR` 16, w128 `shiftR` 24, w128 `shiftR` 32, w128 `shiftR` 40, w128 `shiftR` 48, w128 `shiftR` 56, w128 `shiftR` 64, w128 `shiftR` 72, w128 `shiftR` 80, w128 `shiftR` 88, w128 `shiftR` 96, w128 `shiftR` 104, w128 `shiftR` 112, w128 `shiftR` 120]
@@ -68,6 +69,9 @@ instance ToWord160 DW.Word160 where
 -- Note the reverse! We switch to big-endian for display purposes
 instance Show Word160 where
   show (Word160 v) = "0x" ++ concatMap (printf "%02x") (reverse $ V.toList v)
+
+showBinary :: Word160 -> String
+showBinary (Word160 v) = "0b" ++ concatMap (printf "%08b") (reverse $ V.toList v)
 
 instance (a ~ Word8) => ToWord160 [a] where
   toWord160 = Word160 . V.fromList . take 20 . (++ repeat 0)

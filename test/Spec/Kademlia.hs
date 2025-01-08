@@ -6,12 +6,10 @@ module Spec.Kademlia (tests) where
 import Test.Tasty
 import Test.Tasty.HUnit hiding (assert)
 import Test.Tasty.Hedgehog
-import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 import Hedgehog
 import qualified Data.Vector.Unboxed as V
 import qualified Data.ByteString as BS
-import qualified Data.Text as T
 
 import Kademlia.Types.Key
 import Kademlia.Types.Node
@@ -21,31 +19,7 @@ import Kademlia.Types.Word160 (Word160(..))
 import qualified Kademlia.Types.RoutingTable as RT
 import qualified Kademlia.Types.KBucket as KB
 
--- Generator for Key
-genKey :: Gen Key
-genKey = fromBS <$> Gen.bytes (Range.singleton 20)
-
--- Generator for Node
-genNode :: Gen Node
-genNode = Node
-  <$> genKey
-  <*> (T.pack <$> Gen.string (Range.linear 7 15) Gen.alphaNum)
-  <*> Gen.word16 Range.constantBounded
-
-genPriority :: Gen Int
-genPriority = Gen.integral (Range.linear 0 1000)
-
-genKBucketTriplet :: Gen (Int, Key, Node)
-genKBucketTriplet = do
-  p <- genPriority
-  node <- genNode
-  let k = nodeId node
-  pure $ (p, k, node)
-
-genKBucket :: Range Int -> Gen (KB.KBucket Int Key Node)
-genKBucket r = do
-  triplets <- Gen.list r genKBucketTriplet
-  pure $ KB.fromList triplets
+import Gen.Kademlia
 
 -- Property: XOR distance is symmetric
 prop_distanceSymmetric :: Property
