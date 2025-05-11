@@ -11,5 +11,12 @@
     "uncurry",
     "unfoldr",
     "viewl"
-  ]
+  ],
+  "terminal.integrated.profiles.osx": {
+    "devboxCompatibleShell": {
+      "path": "/bin/zsh",
+      "args": []
+    }
+  },
+  "terminal.integrated.defaultProfile.osx": "devboxCompatibleShell"
 }
