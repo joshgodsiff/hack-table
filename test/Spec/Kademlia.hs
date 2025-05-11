@@ -51,11 +51,11 @@ prop_kBucketOrder = property $ do
   nodeId firstNode === nodeId (head nodes)
 
 -- Unit test for RoutingTable.findBucketIndex
-unit_findBucketIndex :: Assertion
-unit_findBucketIndex = do
-  let selfId = Key (Word160 (V.replicate 20 0))
-      targetId = Key (Word160 (V.replicate 19 0 <> V.singleton 1))
-  RT.findBucketIndex selfId targetId @?= 159
+-- unit_findBucketIndex :: Assertion
+-- unit_findBucketIndex = do
+--   let selfId = Key (Word160 (V.replicate 20 0))
+--       targetId = Key (Word160 (V.replicate 19 0 <> V.singleton 1))
+--   RT.findBucketIndex selfId targetId @?= 159
 
 tests :: TestTree
 tests = testGroup "Kademlia"

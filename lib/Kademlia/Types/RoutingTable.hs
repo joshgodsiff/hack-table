@@ -8,6 +8,7 @@ import qualified Kademlia.Types.KBucket as KB
 import Kademlia.Types.KBucket (KBucket, kBucketSize)
 import Kademlia.Types.Node
 import Kademlia.Metric
+import Kademlia.Types.Block
 
 bParam :: Int
 bParam = 5
@@ -22,9 +23,9 @@ data RoutingTable = RoutingTable
 data RoutingTree
   = Leaf (KBucket Int Key Node)
   | Branch
-    { prefix :: Int        -- ^ Common prefix for this subtree
-    , left :: RoutingTree  -- ^ Left subtree (0)
-    , right :: RoutingTree -- ^ Right subtree (1)
+    { prefix :: Block        -- ^ Common prefix for this subtree
+    , left   :: RoutingTree  -- ^ Left subtree (0)
+    , right  :: RoutingTree  -- ^ Right subtree (1)
     } deriving (Show)
 
 -- | Create an empty routing table
@@ -34,16 +35,16 @@ singleton n = RoutingTable
   , root = Leaf KB.empty
   }
 
--- insert :: Int -> Node -> RoutingTable -> RoutingTable
--- insert timestamp n rt = RoutingTable
---   { own = own rt
---   , root = insert' (root rt)
---   }
---   where
---     insert' :: RoutingTree -> RoutingTree
---     insert' (Leaf kb)
---       | KB.full kb = undefined -- Check if bucket contains own node, if it does, split it. Otherwise, drop the new node.
---       | otherwise = Leaf $ KB.insert timestamp (nodeId n) n kb
---     insert' (Branch p l r)
---       | prefix n p = Branch p (insert' l) r
---       | otherwise = Branch p l (insert' r)
+shouldSplit :: Int -> Block -> Key -> KBucket Int Key Node -> Bool
+shouldSplit depth block ownKey kb
+  | depth == 0 && KB.full kb = True -- Always split root if full
+  | contains block ownKey = True -- Split if bucket contains own node
+  | depth `mod` bParam == 0 = True -- Split based on b-parameter
+  | otherwise = False
+
+split :: Int -> KBucket Int Key Node -> (RoutingTree, RoutingTree)
+split depth kb = (leftTree, rightTree)
+  where
+    (leftBucket, rightBucket) = KB.partition (\k -> not $ testBit k (159 - depth)) kb
+    leftTree = Leaf leftBucket
+    rightTree = Leaf rightBucket

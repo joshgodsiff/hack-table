@@ -83,7 +83,7 @@ null :: KBucket p k v -> Bool
 null = M.null . prio
 
 fromList :: (Ord p, Ord k) =>  [(p, k, v)] -> KBucket p k v
-fromList xs = F.foldl' ins empty xs
+fromList = F.foldl' ins empty
   where ins kb (p, k, v) = insert p k v kb
 
 toAscListValues :: (Ord p, Ord k) => KBucket p k v -> [v]

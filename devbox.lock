@@ -17,6 +17,14 @@
           ],
           "store_path": "/nix/store/iyr3zbydh6hr22dqg9mvnhifpahpyiz8-cabal-install-3.14.1.1"
         },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "path": "/nix/store/smids26kn6v15rwh3asiggc13rcbgra4-cabal-install-3.14.1.1",
+              "default": true
+            }
+          ]
+        },
         "x86_64-linux": {
           "outputs": [
             {
@@ -44,6 +52,14 @@
             }
           ],
           "store_path": "/nix/store/49hkym1kbf3xsgisrr0q9gsfn769kfm8-cabal2nix-2.20.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "path": "/nix/store/lbaxkxns13amadx6xi800vjxmfpa1v2y-cabal2nix-2.20.0",
+              "default": true
+            }
+          ]
         },
         "x86_64-linux": {
           "outputs": [
@@ -194,6 +210,14 @@
           ],
           "store_path": "/nix/store/v9bbs1q42v99wv87swis6jjx35x3llav-haskell-language-server-2.10.0.0"
         },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "path": "/nix/store/79k9a5z9rzc1zwc3h509zlvnyzv3xc31-haskell-language-server-2.10.0.0",
+              "default": true
+            }
+          ]
+        },
         "x86_64-linux": {
           "outputs": [
             {
@@ -226,6 +250,14 @@
           ],
           "store_path": "/nix/store/cb7xf3wdp6ssghaf3bvllybyrm22z3cl-hlint-3.8"
         },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "path": "/nix/store/wp3pivv6s11j6q32rsvpj21ll4q2pqdc-hlint-3.8",
+              "default": true
+            }
+          ]
+        },
         "x86_64-linux": {
           "outputs": [
             {
@@ -257,6 +289,14 @@
             }
           ],
           "store_path": "/nix/store/wli9w08bnhzadlxs40xfcayd1xgqxpw2-hpack-0.37.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "path": "/nix/store/a7pk8khjhjlb97lsgfh7zzwzh1819qd2-hpack-0.37.0",
+              "default": true
+            }
+          ]
         },
         "x86_64-linux": {
           "outputs": [

@@ -9,6 +9,10 @@ import Kademlia.Types.Key
 import Kademlia.Types.Node
 import qualified Kademlia.Types.KBucket as KB
 import Kademlia.SerDe
+import Kademlia.Types.Word160
+
+genWord160 :: Gen Word160
+genWord160 = fromBS <$> Gen.bytes (Range.singleton 20)
 
 -- Generator for Key
 genKey :: Gen Key

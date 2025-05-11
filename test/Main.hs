@@ -5,6 +5,7 @@ import qualified Spec.Kademlia
 import qualified Spec.Word160
 import qualified Spec.KBucket
 import qualified Spec.RoutingTable
+import qualified Spec.Block
 
 main :: IO ()
 main = defaultMain tests
@@ -15,4 +16,5 @@ tests = testGroup "Tests" $
   , Spec.Word160.tests
   , Spec.KBucket.tests
   , Spec.RoutingTable.tests
+  , Spec.Block.tests
   ]

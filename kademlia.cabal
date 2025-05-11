@@ -20,6 +20,7 @@ library
                      , Kademlia.Types.Node
                      , Kademlia.Types.Word160
                      , Kademlia.Types.RoutingTable
+                     , Kademlia.Types.Block
   build-depends:       base ^>=4.19.2
                      , binary
                      , bytestring
@@ -47,6 +48,7 @@ test-suite kademlia-test
                      , Spec.Word160
                      , Spec.KBucket
                      , Spec.RoutingTable
+                     , Spec.Block
                      , Gen.Kademlia
   build-depends:       base ^>=4.19.2
                      , kademlia
